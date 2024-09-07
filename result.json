@@ -1,0 +1,26 @@
+[
+    {
+        "ID": "459be27a-892a-409a-ad75-3bc059c9f8d8",
+        "DataHora": "2024-09-06 18:27:58",
+        "Valor": "13,90",
+        "Cancelado": "N",
+        "Tipo_Operacao": 1,
+        "CNPJ": "12345678912345"
+    },
+    {
+        "ID": "bdd0c134-af41-4736-b2f0-e13e70c25717",
+        "DataHora": "2024-09-06 18:17:01",
+        "Valor": "22,90",
+        "Cancelado": "N",
+        "Tipo_Operacao": 1,
+        "CNPJ": "12345678912345"
+    },
+    {
+        "ID": "b1afadca-6fc8-4170-a5bb-c13c304cd7f8",
+        "DataHora": "2024-09-06 18:16:52",
+        "Valor": "10,00",
+        "Cancelado": "N",
+        "Tipo_Operacao": 1,
+        "CNPJ": "12345678912345"
+    }
+]
