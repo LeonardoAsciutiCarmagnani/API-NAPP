@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 from time import sleep
 from logger_config import api_setup_logger
 
-
 class Napp:
     
     api_logger = api_setup_logger()
@@ -16,7 +15,6 @@ class Napp:
         self.psw = os.getenv('NAPP_PSW')
         self.token = None
         self.result_directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'result')
-        self.state_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'state.txt')
         
     def get_latest_json(self):
         try:
@@ -34,8 +32,8 @@ class Napp:
     
     def get_token(self):
         if not self.user or not self.psw:
-            self.api_logger.critical("Usuário ou senha não encontrados nas variáveis de ambiente")
-            exit()
+            self.api_logger.critical("Usuário ou senha não encontrados nas variaveis de ambiente")
+            raise SystemExit()
         try:
             self.api_logger.info("Requisitando token")
             url = 'https://publisher.nappsolutions.com/auth'
@@ -50,51 +48,47 @@ class Napp:
                 self.api_logger.info("Token obtido com sucesso")
                 self.api_logger.info(self.token) 
             else:
-                self.api_logger.error("Falha ao requisitar token: " + str(res.json()))
+                self.api_logger.error("Falha ao requisitar token: " + {str(res.json())})
+                raise SystemExit()
         except Exception as error:
-            self.api_logger.critical("Erro ao requisitar token: " + str(error))
-            exit()
+            self.api_logger.critical("Erro ao requisitar token: " + {str(error)})
+            raise SystemExit()
 
-    def upload(self):
+    def upload(self, file_path):
         try:
-            latest_json_file = self.get_latest_json()
-            if latest_json_file is None:
-                self.api_logger.error("Nenhum arquivo JSON para fazer upload.")
+            if not file_path:
+                self.api_logger.error("Nenhum arquivo JSON fornecido para fazer upload.")
                 return
-            
-            if os.path.getsize(latest_json_file) == 0:
+            if not os.path.isfile(file_path):
+                self.api_logger.error(f"Arquivo não encontrado: {file_path}")
+                return
+            if os.path.getsize(file_path) == 0:
                 self.api_logger.error("O arquivo JSON está vazio.")
                 return
-            
-            self.api_logger.info(f"Iniciando upload do arquivo: {latest_json_file}")
-            
-            if not os.path.isfile(latest_json_file):
-                self.api_logger.error(f"Arquivo não encontrado: {latest_json_file}")
-                return
-
+            self.api_logger.info(f"Iniciando upload do arquivo: {file_path}")
             url = 'https://publisher.nappsolutions.com/receiver'
-            headers = {'Authorization': self.token, 'content-type': 'application/json'}
-            
-            with open(latest_json_file, 'rb') as file:
-                files = {'file': (os.path.basename(latest_json_file))}
-                
-                for _ in range(3):  # Tentativas de reenvio
+            headers = {'Authorization': self.token}
+            with open(file_path, 'rb') as file:
+                files = {
+                    'file': (os.path.basename(file_path), file, 'application/json'),
+                    'type': (None, 'vendas')
+                }
+                for attempt in range(3):  # Tentativas de reenvio
                     try:
                         res = requests.post(url=url, headers=headers, files=files, timeout=30)
                         if res.status_code == 200:
-                            self.api_logger.info("JSON enviado com sucesso", str(res.json()))
+                            self.api_logger.info("JSON enviado com sucesso: %s", str(res.json()))
                             break
                         else:
-                            self.api_logger.error("Falha ao enviar arquivo, tentando novamente...", str(res.json()))
-                            sleep(5) 
+                            self.api_logger.error("Falha ao enviar arquivo, tentando novamente... Tentativa %d: %s", attempt + 1, str(res.json()))
+                            sleep(5)
                     except requests.RequestException as e:
-                        self.api_logger.error(f"Erro na requisição de upload: {str(e)}")
-                        sleep(5)  
-                    else:
-                        self.api_logger.critical("Falhas consecutivas ao tentar enviar o arquivo.")
-        
+                        self.api_logger.error(f"Erro na requisicao de upload: {str(e)}")
+                        sleep(5)
+                else:
+                    self.api_logger.critical("Falhas consecutivas ao tentar enviar o arquivo.")
         except Exception as ex:
-            self.api_logger.critical("Erro ao enviar arquivo: " + str(ex))
+            self.api_logger.critical("Erro ao enviar arquivo: %s", str(ex))
             self.api_logger.info('Finalizando execução')
             exit()
         
@@ -104,8 +98,9 @@ class Napp:
     def fetchAPI():       
         api_client = Napp()
         api_client.get_token()
-        # latest_file = api_client.get_latest_json()
-        # if latest_file:
-        #     api_client.upload(latest_file)
-        # else:
-        #     api_client.api_logger.error("Nenhum arquivo JSON para enviar.")
+        latest_file = api_client.get_latest_json()
+        if latest_file:
+            api_client.upload(latest_file)
+        else:
+            api_client.api_logger.error("Nenhum arquivo JSON para enviar")
+       

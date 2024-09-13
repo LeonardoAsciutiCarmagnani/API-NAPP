@@ -59,7 +59,7 @@ def flowMongo():
         sys.exit(1)
     
     if not is_valid_cnpj(cnpj_loja):
-        logger.error("Erro: O CNPJ da loja deve ter exatamente 14 digitos e não pode conter pontuacao.")
+        logger.error("Erro: O CNPJ da loja deve ter exatamente 14 digitos e nao pode conter pontuacao.")
         sys.exit(1)
 
     logger.info(f"CNPJ da loja encontrado: {cnpj_loja}")
