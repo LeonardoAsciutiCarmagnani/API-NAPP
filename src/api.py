@@ -77,7 +77,7 @@ class Napp:
             for attempt in range(3):  # Tentativas de reenvio
                 try:
                     res = requests.post(url=url, headers=headers, json=json_data, timeout=30)
-                    self.api_logger.info(res.json())
+                    
                     if res.status_code == 200:
                         self.api_logger.info("JSON enviado com sucesso")
                         break
@@ -98,10 +98,10 @@ class Napp:
     def fetchAPI():       
         api_client = Napp()
         api_client.get_token()
-        api_client.api_logger.info(f"Tentando abrir o arquivo: {api_client.get_latest_json()}")
-        latest_file = api_client.get_latest_json()
-        if latest_file:
-            api_client.upload(latest_file)
-        else:
-            api_client.api_logger.error("Nenhum arquivo JSON para enviar")
+        
+        # latest_file = api_client.get_latest_json()
+        # if latest_file:
+        #     api_client.upload(latest_file)
+        # else:
+        #     api_client.api_logger.error("Nenhum arquivo JSON para enviar")
        
