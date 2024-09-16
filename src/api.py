@@ -65,39 +65,40 @@ class Napp:
             if os.path.getsize(file_path) == 0:
                 self.api_logger.error("O arquivo JSON está vazio.")
                 return
+
             self.api_logger.info(f"Iniciando upload do arquivo: {file_path}")
             url = 'https://publisher.nappsolutions.com/receiver'
-            headers = {'Authorization': self.token}
-            with open(file_path, 'rb') as file:
-                files = {
-                    'file': (os.path.basename(file_path), file, 'application/json'),
-                    'type': (None, 'vendas')
-                }
-                for attempt in range(3):  # Tentativas de reenvio
-                    try:
-                        res = requests.post(url=url, headers=headers, files=files, timeout=30)
-                        if res.status_code == 200:
-                            self.api_logger.info("JSON enviado com sucesso: %s", str(res.json()))
-                            break
-                        else:
-                            self.api_logger.error("Falha ao enviar arquivo, tentando novamente... Tentativa %d: %s", attempt + 1, str(res.json()))
-                            sleep(5)
-                    except requests.RequestException as e:
-                        self.api_logger.error(f"Erro na requisicao de upload: {str(e)}")
+            headers = {'Authorization': self.token, 'Content-Type': 'application/json'}
+
+            # Ler o conteúdo do arquivo JSON
+            with open(file_path, 'r', encoding='utf-8') as file:
+                json_data = json.load(file)
+
+            for attempt in range(3):  # Tentativas de reenvio
+                try:
+                    res = requests.post(url=url, headers=headers, json=json_data, timeout=30)
+                    self.api_logger.info(res.json())
+                    if res.status_code == 200:
+                        self.api_logger.info("JSON enviado com sucesso")
+                        break
+                    else:
+                        self.api_logger.error("Falha ao enviar arquivo, tentando novamente... Tentativa %d: %s", attempt + 1, str(res.json()))
                         sleep(5)
-                else:
-                    self.api_logger.critical("Falhas consecutivas ao tentar enviar o arquivo.")
+                except requests.RequestException as e:
+                    self.api_logger.error(f"Erro na requisição de upload: {str(e)}")
+                    sleep(5)
+            else:
+                self.api_logger.critical("Falhas consecutivas ao tentar enviar o arquivo.")
         except Exception as ex:
             self.api_logger.critical("Erro ao enviar arquivo: %s", str(ex))
             self.api_logger.info('Finalizando execução')
             exit()
         
-   
-    
-
+        
     def fetchAPI():       
         api_client = Napp()
         api_client.get_token()
+        api_client.api_logger.info(f"Tentando abrir o arquivo: {api_client.get_latest_json()}")
         latest_file = api_client.get_latest_json()
         if latest_file:
             api_client.upload(latest_file)

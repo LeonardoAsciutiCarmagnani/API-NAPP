@@ -30,7 +30,7 @@ def save_json(json_data):
 
         # Obtém a data e hora atual para usar no nome do arquivo
         timestamp = datetime.now().strftime('%d%m%Y-%H%M')
-        result_filename = f'result_{timestamp}.json'
+        result_filename = f'{os.getenv('CNPJ_LOJA')}_{timestamp}.json'
         result_path = os.path.join(result_directory, result_filename)
 
         # Salva o JSON no caminho especificado com formatação
@@ -48,7 +48,7 @@ def save_json(json_data):
 def defineDate():
    
     logger.info("Realizando o primeiro envio - 90 dias")
-    start = (datetime.now() - timedelta(days=90)).strftime("%Y-%m-%d 00:00:00")
+    start = (datetime.now() - timedelta(days=13)).strftime("%Y-%m-%d 00:00:00")
     end = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     try:
