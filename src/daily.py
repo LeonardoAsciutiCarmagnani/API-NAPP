@@ -32,7 +32,7 @@ def save_json(json_data):
         timestamp = datetime.now().strftime('%d%m%Y-%H%M%S')
         result_filename = f'{os.getenv('CNPJ_LOJA')}_{timestamp}.json'
         result_path = os.path.join(result_directory, result_filename)
-
+        
         # Salva o JSON no caminho especificado com formatação
         with open(result_path, 'w') as json_file:
             json.dump(json_data, json_file, indent=4)  # Usa json.dump para formatar o JSON com indentação
