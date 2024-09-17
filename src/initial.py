@@ -46,10 +46,10 @@ def save_json(json_data):
         logger.critical(f"Erro ao salvar o arquivo JSON: {e}")
         
 def defineDate():
-   
-    logger.info("Realizando o primeiro envio - 90 dias")
-    start = (datetime.now() - timedelta(days=13)).strftime("%Y-%m-%d 00:00:00")
+    searchDays = 90 # Definindo o período para primeira carga - últimos 90 dias (default)
+    start = (datetime.now() - timedelta(days=searchDays)).strftime("%Y-%m-%d 00:00:00")
     end = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    logger.info(f"Carga dos últimos {searchDays} dias")
 
     try:
         with open(file_path, "w") as f:
