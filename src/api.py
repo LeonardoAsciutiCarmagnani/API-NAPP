@@ -14,7 +14,6 @@ class Napp:
         load_dotenv()
         self.user = os.getenv('NAPP_USR')
         self.psw = os.getenv('NAPP_PSW')
-        self.alias = os.getenv('ALIAS')
         self.token = None
         self.result_directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'result')
         
@@ -51,10 +50,11 @@ class Napp:
                 self.api_logger.info(self.token) 
             else:
                 self.api_logger.error("Falha ao requisitar token: " + {str(res.json())})
-                sendEmailForCriticalErrors(f"Falha ao requisitar token com a NAPP em: {self.alias}")
+                sendEmailForCriticalErrors(f"Falha ao requisitar token com a NAPP ({os.getenv('ALIAS')})")
                 raise SystemExit()
         except Exception as error:
             self.api_logger.critical("Erro ao requisitar token: " + {str(error)})
+            sendEmailForCriticalErrors(f"Falha do tipo Expection ao requisitar token ({os.getenv('ALIAS')}): {str(error)}")
             raise SystemExit()
 
     def upload(self, file_path):
@@ -92,10 +92,10 @@ class Napp:
                     sleep(5)
             else:
                 self.api_logger.critical("Falhas consecutivas ao tentar enviar o arquivo.")
-                sendEmailForCriticalErrors(f"Falhas consecutivas ao tentar enviar o arquivo para NAPP, em: {self.alias}")
+                sendEmailForCriticalErrors(f"Falhas consecutivas ao tentar enviar o arquivo para NAPP ({os.getenv('ALIAS')}")
         except Exception as ex:
             self.api_logger.critical("Erro ao enviar arquivo: %s", str(ex))
-            sendEmailForCriticalErrors(f"Houve um erro CRÍTICO do tipo Exception e não foi possível enviar o JSON em: {self.alias}")
+            sendEmailForCriticalErrors(f"Houve um erro CRÍTICO do tipo Exception e não foi possível enviar o JSON ({os.getenv('ALIAS')}): {ex}")
             self.api_logger.info('Finalizando execução')
             exit()
         
@@ -103,9 +103,9 @@ class Napp:
     def fetchAPI():       
         api_client = Napp()
         api_client.get_token()
-        # latest_file = api_client.get_latest_json()
-        # if latest_file:
-        #     api_client.upload(latest_file)
-        # else:
-        #     api_client.api_logger.error("Nenhum arquivo JSON para enviar")
+        latest_file = api_client.get_latest_json()
+        if latest_file:
+            api_client.upload(latest_file)
+        else:
+            api_client.api_logger.error("Nenhum arquivo JSON para enviar")
        
