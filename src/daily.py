@@ -7,13 +7,10 @@ from pymongo import MongoClient, errors
 from dotenv import load_dotenv
 from api import Napp
 from logger_config import basic_setup_logger
+from send_email import sendEmailForCriticalErrors
 
 # Carrega as variáveis do .env
 load_dotenv()
-
-# Define o caminho para o arquivo initial_load.txt
-file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'initial_load.txt')
-
 
 logger = basic_setup_logger()
 logger.info("Logger configurado com sucesso.")
@@ -39,7 +36,6 @@ def save_json(json_data):
 
         logger.info(f"JSON salvo com sucesso em: {result_path}")
 
-        # Chamada para a API após salvar o JSON
         Napp.fetchAPI()
         
     except Exception as e:
@@ -73,12 +69,15 @@ def flowMongo():
         logger.info("Conexao realizada com sucesso")
     except errors.ConnectionFailure as e:
         logger.critical(f"Falha ao conectar ao MongoDB: {e}")
+        sendEmailForCriticalErrors(f"Falha ao conectar no MongoDB ({os.getenv('ALIAS')}): {e}")
         return
     except errors.ServerSelectionTimeoutError as e:
         logger.critical(f"Tentativas para conexao esgotadas! {e}")
+        sendEmailForCriticalErrors(f"Tentativas para conexão com MongoDB esgotadas ({os.getenv('ALIAS')}): {e}")
         return
     except Exception as e:
         logger.critical(f"Ocorreu um erro inesperado: {e}")
+        sendEmailForCriticalErrors(f"Ocorreu um erro inesperado ao consultar o MongoDB ({os.getenv('ALIAS')}): {e}")
         return
     
     start_date, end_date = defineDate()
@@ -144,6 +143,7 @@ def flowMongo():
         result_list = list(results)
     except errors.PyMongoError as e:
         logger.error(f"Erro ao consultar dados: {e}")
+        sendEmailForCriticalErrors(f"Erro ao realizar busca no MongoDB ({os.getenv('ALIAS')}): {e}")
         sys.exit(1)
     
     logger.info("Inserindo CNPJ da loja...")
