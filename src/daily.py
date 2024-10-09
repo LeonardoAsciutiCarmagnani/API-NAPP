@@ -19,7 +19,6 @@ def is_valid_cnpj(cnpj):
     return bool(re.match(r'^\d{14}$', cnpj))
 
 def save_json(json_data):
-    logger.info("Salvando JSON...")
     try:
         # Define o diretório e garante que a pasta 'result' exista
         result_directory = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'result')
@@ -42,7 +41,7 @@ def save_json(json_data):
         logger.critical(f"Erro ao salvar o arquivo JSON: {e}")
 
 def defineDate():
-    logger.info("Iniciando busca diaria")    
+    logger.info("Iniciando busca diaria")   
     start = datetime.now().strftime("%Y-%m-%d 00:00:00")
     end = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     return start, end
@@ -83,7 +82,7 @@ def flowMongo():
     start_date, end_date = defineDate()
     logger.info(f"Periodo definido: {start_date} - {end_date}")
     
-    # Pipeline de agregação para consulta M
+    # Pipeline de agregação para consulta
     pipeline = [
         {
             '$match': {
@@ -91,7 +90,7 @@ def flowMongo():
                 'fiscal_status': { '$in': ['PENDING', 'TRANSMITTED'] },
                 'payments': {
                     '$elemMatch': {
-                        'payment_method': { '$in': ['Cartão de Crédito','Cartão de Débito'] }
+                        'payment_method': { '$in': ['Cartão de Crédito','Cartão de Débito','Vale Refeição','PIX'] }
                     }
                 },
                 'createdAt': {

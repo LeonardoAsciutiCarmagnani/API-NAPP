@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import os
 import requests
@@ -19,14 +20,23 @@ class Napp:
         
     def get_latest_json(self):
         try:
-            json_files = [f for f in os.listdir(self.result_directory) if f.endswith('.json')]
+            json_files = [
+                f for f in os.listdir(self.result_directory) 
+                if f.endswith('.json') and os.path.isfile(os.path.join(self.result_directory, f))
+            ]
+            
             if not json_files:
                 raise FileNotFoundError("Nenhum arquivo JSON encontrado no diretório 'result'.")
-            # Ordena os arquivos pelo nome (que contém o timestamp)
-            json_files.sort(reverse=True)
-            latest_file = json_files[0]  # Pega o arquivo mais recente com base no nome
+            
+            # Ordena os arquivos pelo timestamp no nome do arquivo
+            json_files.sort(key=lambda x: datetime.strptime(x.split('_')[1].split('.')[0], '%d%m%Y-%H%M%S'))
+            latest_file = json_files[-1]  
             latest_file_path = os.path.join(self.result_directory, latest_file)
             return latest_file_path
+        
+        except FileNotFoundError as e:
+            self.api_logger.error(str(e))
+            return None
         except Exception as e:
             self.api_logger.error(f"Erro ao obter o arquivo JSON mais recente: {str(e)}")
             return None
@@ -105,7 +115,7 @@ class Napp:
         api_client.get_token()
         latest_file = api_client.get_latest_json()
         if latest_file:
-            api_client.upload(latest_file)
+            print(latest_file)
         else:
             api_client.api_logger.error("Nenhum arquivo JSON para enviar")
        
