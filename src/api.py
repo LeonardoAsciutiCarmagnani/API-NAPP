@@ -115,7 +115,7 @@ class Napp:
         api_client.get_token()
         latest_file = api_client.get_latest_json()
         if latest_file:
-            print(latest_file)
+            api_client.upload(latest_file)
         else:
             api_client.api_logger.error("Nenhum arquivo JSON para enviar")
        
